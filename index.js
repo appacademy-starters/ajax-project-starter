@@ -48,11 +48,11 @@ app.get("/kitten/image", (req, res) => {
   try {
     generateRandomError();
     axios
-      .get("https://loremflickr.com/json/g/320/240/kitten/all")
+      .get("https://api.thecatapi.com/v1/images/search?size=small")
       .then(image => {
         kitten.score = 0;
         kitten.comments = [];
-        kitten.src = image.data.file;
+        kitten.src = image.data[0].url;
         res.json(kitten);
       });
   } catch (e) {
