@@ -1,11 +1,13 @@
 const express = require("express");
 const path = require("path");
-const axios = require("axios");
+const fetch = require("node-fetch");
 const bodyParser = require("body-parser");
+const morgan = require("morgan");
 
 const app = express();
 app.use(bodyParser.json());
 app.use(express.static("public"));
+app.use(morgan('dev'));
 
 const port = 3000;
 
@@ -47,12 +49,12 @@ app.get("/", (req, res) => {
 app.get("/kitten/image", (req, res) => {
   try {
     generateRandomError();
-    axios
-      .get("https://api.thecatapi.com/v1/images/search?size=small")
-      .then(image => {
+    fetch("https://api.thecatapi.com/v1/images/search?size=small")
+      .then(res => res.json())
+      .then(data => {
         kitten.score = 0;
         kitten.comments = [];
-        kitten.src = image.data[0].url;
+        kitten.src = data[0].url;
         res.json(kitten);
       });
   } catch (e) {
@@ -77,6 +79,13 @@ app.post("/kitten/comments", (req, res) => {
 });
 
 app.delete("/kitten/comments/:id", (req, res) => {
+  // :id in the /kitten/comments/:id is a wildcard in the url that will be mapped
+    // to whatever comes after the /comments in the url path and be included in the
+    // req object as `req.params.id` as seen below
+  // ex: a DELETE request to "/kittens/comments/hello" will make `req.params.id`
+    // equal to "hello"
+  // ex: a DELETE request to "/kittens/comments/3" will make `req.params.id`
+    // equal to "3"
   const updatedComments = kitten.comments.filter((_, i) => i != req.params.id);
   kitten.comments = updatedComments;
   res.json({ comments: kitten.comments });
